@@ -23,9 +23,11 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@janhq/core": "^0.1.1",
     "axios": "^1.6.0",
     "ts-loader": "^9.5.0"
+  },
+  "optionalDependencies": {
+    "@janhq/core": "^0.1.1"
   },
   "bundledDependencies": [],
   "engines": {

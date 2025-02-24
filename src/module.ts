@@ -3,6 +3,14 @@
  * Contains functions that run in the main process
  */
 
+// Simple stub function for initConfigPath 
+async function initConfigPath(): Promise<void> {
+  // This is a placeholder function that simply resolves immediately
+  // The original implementation would likely set up file paths or configuration
+  console.log('Config path initialization (stub function)');
+  return Promise.resolve();
+}
+
 import axios from 'axios';
 import { ipcMain } from 'electron';
 import { core } from '@janhq/core';
