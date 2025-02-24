@@ -1,8 +1,8 @@
 {
-  "name": "typescript-plugin",
+  "name": "jan-todoist-plugin",
   "version": "1.0.0",
-  "description": "Typescript plugin boilerplate",
-  "icon": "https://raw.githubusercontent.com/tailwindlabs/heroicons/88e98b0c2b458553fbadccddc2d2f878edc0387b/src/20/solid/command-line.svg",
+  "description": "Todoist integration for Jan AI",
+  "icon": "https://raw.githubusercontent.com/tailwindlabs/heroicons/88e98b0c2b458553fbadccddc2d2f878edc0387b/src/20/solid/check-circle.svg",
   "main": "dist/index.js",
   "module": "dist/module.js",
   "author": "Jan",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@janhq/core": "^0.1.1",
+    "axios": "^1.6.0",
     "ts-loader": "^9.5.0"
   },
   "bundledDependencies": [],

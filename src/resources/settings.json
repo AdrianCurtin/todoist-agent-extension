@@ -1,0 +1,14 @@
+[
+    {
+      "key": "todoist-api-token",
+      "title": "Todoist API Token",
+      "description": "API token to connect to your Todoist account. You can find this in Todoist Settings > Integrations > Developer > API token.",
+      "controllerType": "input",
+      "controllerProps": {
+        "value": "",
+        "placeholder": "Enter your Todoist API token",
+        "type": "password",
+        "inputActions": ["unobscure", "copy"]
+      }
+    }
+  ]
