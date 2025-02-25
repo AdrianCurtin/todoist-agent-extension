@@ -13,6 +13,11 @@ export class CommandHandler {
     // Trim the command and remove the "/todoist " prefix
     const trimmedCommand = command.trim().replace(/^\/todoist\s+/i, '').trim();
     
+    // Handle empty command (just "/todoist")
+    if (!trimmedCommand) {
+      return this.getHelpText();
+    }
+    
     // Split into command parts
     const parts = trimmedCommand.split(/\s+/);
     const action = parts[0].toLowerCase();
@@ -57,7 +62,7 @@ export class CommandHandler {
   private static async handleStatus(): Promise<string> {
     try {
       // Try to fetch projects as a test of the connection
-      await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
+      await executeOnMain(MODULE_PATH, "getProjects");
       return "✅ Todoist connection is working! Your API token is valid.";
     } catch (error) {
       let errorMessage = error.message || '';
@@ -86,7 +91,7 @@ export class CommandHandler {
     // If project name is provided, find its ID
     if (projectName) {
       try {
-        const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
+        const projects = await executeOnMain(MODULE_PATH, "getProjects");
         const project = projects.find(p => 
           p.name.toLowerCase() === projectName.toLowerCase()
         );
@@ -102,8 +107,8 @@ export class CommandHandler {
     }
     
     try {
-      const task = await executeOnMain(PLUGIN_NAME,
-        "todoist:addTask", 
+      const task = await executeOnMain(MODULE_PATH,
+        "addTask", 
         content, 
         dueString, 
         projectId
@@ -120,7 +125,7 @@ export class CommandHandler {
    */
   private static async handleListProjects(): Promise<string> {
     try {
-      const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
+      const projects = await executeOnMain(MODULE_PATH, "getProjects");
       
       if (!projects || projects.length === 0) {
         return 'No projects found';
@@ -153,7 +158,7 @@ export class CommandHandler {
         filter = filter.replace(projectMatch[0], '').trim();
         
         // Try to find the project by name
-        const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
+        const projects = await executeOnMain(MODULE_PATH, "getProjects");
         const project = projects.find((p: any) => 
           p.name.toLowerCase() === projectMatch[1].toLowerCase()
         );
@@ -165,7 +170,7 @@ export class CommandHandler {
         }
       }
       
-      const tasks = await executeOnMain(PLUGIN_NAME, "todoist:getTasks", filter, projectId);
+      const tasks = await executeOnMain(MODULE_PATH, "getTasks", filter, projectId);
       
       if (!tasks || tasks.length === 0) {
         return 'No tasks found matching your criteria';
@@ -194,7 +199,7 @@ export class CommandHandler {
     }
     
     try {
-      const result = await executeOnMain(PLUGIN_NAME, "todoist:completeTask", taskId);
+      const result = await executeOnMain(MODULE_PATH, "completeTask", taskId);
       
       if (result) {
         return `✅ Task ${taskId} marked as complete!`;

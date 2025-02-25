@@ -3,24 +3,22 @@
  * Contains functions that run in the main process
  */
 
-// Simple stub function for initConfigPath 
-async function initConfigPath(): Promise<void> {
-  // This is a placeholder function that simply resolves immediately
-  // The original implementation would likely set up file paths or configuration
-  console.log('Config path initialization (stub function)');
-  return Promise.resolve();
-}
-
 import axios from 'axios';
 import { ipcMain } from 'electron';
 
 // Settings key for Todoist API token
 const API_TOKEN_KEY = 'todoist-api-token';
 
+// Simple stub function for initConfigPath 
+async function initConfigPath(): Promise<void> {
+  console.log('Config path initialization (stub function)');
+  return Promise.resolve();
+}
+
 // Get Todoist API token from Jan settings
 async function getApiToken(): Promise<string | null> {
   try {
-    return await core.getSetting(PLUGIN_NAME, API_TOKEN_KEY) as string;
+    return await this.getSetting(PLUGIN_NAME, API_TOKEN_KEY) as string;
   } catch (error) {
     console.error('Failed to get Todoist API token:', error);
     return null;
@@ -30,7 +28,7 @@ async function getApiToken(): Promise<string | null> {
 // Save Todoist API token to Jan settings
 async function saveApiToken(token: string): Promise<void> {
   try {
-    await core.setSetting(PLUGIN_NAME, API_TOKEN_KEY, token);
+    await this.setSetting(PLUGIN_NAME, API_TOKEN_KEY, token);
     console.log('Todoist API token saved successfully');
   } catch (error) {
     console.error('Failed to save Todoist API token:', error);
