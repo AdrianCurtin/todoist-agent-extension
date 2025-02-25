@@ -12,7 +12,9 @@ import {
   AssistantTool,
   MessageRequest,
   executeOnMain,
-  Assistant
+  Assistant,
+  SettingComponentProps,
+  getJanDataFolderPath
 } from "@janhq/core";
 import { CommandHandler } from './command-handler';
 
@@ -95,6 +97,39 @@ export default class TodoistExtension extends AssistantExtension {
   private assistants: Assistant[] = [];
 
 
+  private defaultAssistant: Assistant = {
+    avatar: '',
+    thread_location: undefined,
+    id: 'jan',
+    object: 'assistant',
+    created_at: Date.now() / 1000,
+    name: 'Todoist Assistant',
+    description: 'A default assistant that can use all downloaded models',
+    model: '*',
+    instructions: '',
+    tools: [
+      {
+        type: 'retrieval',
+        enabled: false,
+        useTimeWeightedRetriever: false,
+        settings: {
+          top_k: 2,
+          chunk_size: 1024,
+          chunk_overlap: 64,
+          retrieval_template: `Use the following pieces of context to answer the question at the end.
+----------------
+CONTEXT: {CONTEXT}
+----------------
+QUESTION: {QUESTION}
+----------------
+Helpful Answer:`,
+        },
+      },
+    ],
+    file_ids: [],
+    metadata: undefined,
+  }
+
 
   async createAssistant(assistant: Assistant): Promise<void> {
     const API_TOKEN_KEY = 'todoist-api-token';
@@ -104,7 +139,7 @@ export default class TodoistExtension extends AssistantExtension {
       type: 'todoist',
       enabled: true,
       settings: {
-        apiToken: await this.getSetting(PLUGIN_NAME, API_TOKEN_KEY) as string
+        apiToken: await this.getSetting(API_TOKEN_KEY,'') as string
       }
     });
     
@@ -129,42 +164,149 @@ export default class TodoistExtension extends AssistantExtension {
     ToolManager.instance().register(new TodoistTool());
     
     // Register settings
-    await this.registerSettings();
+    await this.registerSettings([]);
+
+    const token = await this.getSetting('todoist-api-token', '');
+
+    if(!token || token === '') {
+      // If the API token is not set, initialize it with a placeholder
+      await this.updateSettings([
+        {
+          key: 'todoist-api-token',
+          title: 'Todoist API Token',
+          description: 'API token to connect to your Todoist account. You can find this in Todoist Settings > Integrations > Developer > API token.',
+          controllerType: 'input',
+          controllerProps: {
+            value: '123456',
+            "placeholder": "hf_**********************************",
+            "type": "password",
+            "inputActions": [
+              "unobscure",
+              "copy"]
+          } as any,
+        },
+      ])
+      console.log('Todoist API token setting initialized');
+    } else {
+      console.log('Todoist API token setting already exists');
+      console.log('Todoist API token:', token);
+    }
     
     // Initialize the main module
     try {
-      return executeOnMain(MODULE_PATH, "run", 0);
+      this.createAssistant(this.defaultAssistant);
     } catch (error) {
       console.error('Failed to initialize Todoist plugin:', error);
     }
   }
 
   /**
-   * Register plugin settings
+   * Register settings for the extension.
+   * @param settings
+   * @returns
    */
-  async registerSettings(): Promise<void> {
+  async registerSettings(settings: SettingComponentProps[]): Promise<void> {
+    if (!this.name) {
+      console.error('Extension name is not defined')
+      return
+    }
+
+    const extensionSettingFolderPath = await joinPath([
+      await getJanDataFolderPath(),
+      'settings',
+      this.name,
+    ])
+    settings.forEach((setting) => {
+      setting.extensionName = this.name
+    })
     try {
-      // Get path to the settings.json file
-      const settingsPath = await joinPath(['resources', 'settings.json']);
-      
-      // Create the directory if it doesn't exist
-      const dirPath = await joinPath(['resources']);
-      if (!(await fs.existsSync(dirPath))) {
-        await fs.mkdir(dirPath, { recursive: true });
+      if (!(await fs.existsSync(extensionSettingFolderPath)))
+        await fs.mkdir(extensionSettingFolderPath)
+      const settingFilePath = await joinPath([extensionSettingFolderPath, this.settingFileName])
+
+      // Persists new settings
+      if (await fs.existsSync(settingFilePath)) {
+        const oldSettings = JSON.parse(await fs.readFileSync(settingFilePath, 'utf-8'))
+        settings.forEach((setting) => {
+          // Keep setting value
+          if (setting.controllerProps && Array.isArray(oldSettings))
+            setting.controllerProps.value = oldSettings.find(
+              (e: any) => e.key === setting.key
+            )?.controllerProps?.value
+        })
       }
-      
-      // Write the settings to the file
-      await fs.writeFileSync(settingsPath, JSON.stringify(SETTINGS, null, 2));
-      
-      console.log('Todoist plugin settings registered successfully');
-    } catch (error) {
-      console.error('Failed to register Todoist plugin settings:', error);
+      await fs.writeFileSync(settingFilePath, JSON.stringify(settings, null, 2))
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  onUnload(): void {
+  /**
+   * Get the setting value for the key.
+   * @param key
+   * @param defaultValue
+   * @returns
+   */
+ /**
+   * Get the setting value for the key.
+   * @param key
+   * @param defaultValue
+   * @returns
+   */
+  async getSetting<T>(key: string, defaultValue: T) {
+    const keySetting = (await this.getSettings()).find((setting) => setting.key === key)
+
+    const value = keySetting?.controllerProps.value
+    return (value as T) ?? defaultValue
+  }
+
+  /**
+   * Update the settings for the extension.
+   * @param componentProps
+   * @returns
+   */
+  async updateSettings(componentProps: Partial<SettingComponentProps>[]): Promise<void> {
+    if (!this.name) return
+
+    const settings = await this.getSettings()
+
+    let updatedSettings = settings.map((setting) => {
+      const updatedSetting = componentProps.find(
+        (componentProp) => componentProp.key === setting.key
+      )
+      if (updatedSetting && updatedSetting.controllerProps) {
+        setting.controllerProps.value = updatedSetting.controllerProps.value
+      }
+      return setting
+    })
+
+    if (!updatedSettings.length) updatedSettings = componentProps as SettingComponentProps[]
+
+    const settingFolder = await joinPath([
+      await getJanDataFolderPath(),
+      this.settingFolderName,
+      this.name,
+    ])
+
+    if (!(await fs.existsSync(settingFolder))) {
+      await fs.mkdir(settingFolder)
+    }
+
+    const settingPath = await joinPath([settingFolder, this.settingFileName])
+
+    await fs.writeFileSync(settingPath, JSON.stringify(updatedSettings, null, 2))
+
+    updatedSettings.forEach((setting) => {
+      this.onSettingUpdate<typeof setting.controllerProps.value>(
+        setting.key,
+        setting.controllerProps.value
+      )
+    })
+  }
+
+  async onUnload() {
     console.log('Unloading Todoist Extension');
-    // Clean up any resources if needed
+    // Perform any cleanup if necessary
   }
 }
 
@@ -172,6 +314,10 @@ export default class TodoistExtension extends AssistantExtension {
  * Register extension functions with Jan
  */
 export function init({ register }: { register: RegisterExtensionPoint }) {
+  register("todoist:run", PLUGIN_NAME, (param: number) => {
+    console.log('Running Todoist extension with param:', param);
+    return executeOnMain(MODULE_PATH, "run", param);
+  });
   // Register Todoist specific functions
   register("todoist:addTask", PLUGIN_NAME, addTask);
   register("todoist:getProjects", PLUGIN_NAME, getProjects);
