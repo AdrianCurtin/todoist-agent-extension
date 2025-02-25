@@ -3,7 +3,7 @@
  */
 
 import { TodoistService } from './todoist-service';
-import { core } from '@janhq/core';
+import { executeOnMain } from '@janhq/core';
 
 export class CommandHandler {
   /**
@@ -57,7 +57,7 @@ export class CommandHandler {
   private static async handleStatus(): Promise<string> {
     try {
       // Try to fetch projects as a test of the connection
-      await core.callPluginFunction("todoist:getProjects");
+      await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
       return "✅ Todoist connection is working! Your API token is valid.";
     } catch (error) {
       let errorMessage = error.message || '';
@@ -86,7 +86,7 @@ export class CommandHandler {
     // If project name is provided, find its ID
     if (projectName) {
       try {
-        const projects = await core.callPluginFunction("todoist:getProjects");
+        const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
         const project = projects.find(p => 
           p.name.toLowerCase() === projectName.toLowerCase()
         );
@@ -102,7 +102,7 @@ export class CommandHandler {
     }
     
     try {
-      const task = await core.callPluginFunction(
+      const task = await executeOnMain(PLUGIN_NAME,
         "todoist:addTask", 
         content, 
         dueString, 
@@ -120,7 +120,7 @@ export class CommandHandler {
    */
   private static async handleListProjects(): Promise<string> {
     try {
-      const projects = await core.callPluginFunction("todoist:getProjects");
+      const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
       
       if (!projects || projects.length === 0) {
         return 'No projects found';
@@ -153,7 +153,7 @@ export class CommandHandler {
         filter = filter.replace(projectMatch[0], '').trim();
         
         // Try to find the project by name
-        const projects = await core.callPluginFunction("todoist:getProjects");
+        const projects = await executeOnMain(PLUGIN_NAME, "todoist:getProjects");
         const project = projects.find((p: any) => 
           p.name.toLowerCase() === projectMatch[1].toLowerCase()
         );
@@ -165,7 +165,7 @@ export class CommandHandler {
         }
       }
       
-      const tasks = await core.callPluginFunction("todoist:getTasks", filter, projectId);
+      const tasks = await executeOnMain(PLUGIN_NAME, "todoist:getTasks", filter, projectId);
       
       if (!tasks || tasks.length === 0) {
         return 'No tasks found matching your criteria';
@@ -194,7 +194,7 @@ export class CommandHandler {
     }
     
     try {
-      const result = await core.callPluginFunction("todoist:completeTask", taskId);
+      const result = await executeOnMain(PLUGIN_NAME, "todoist:completeTask", taskId);
       
       if (result) {
         return `✅ Task ${taskId} marked as complete!`;

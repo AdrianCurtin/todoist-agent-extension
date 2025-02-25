@@ -23,8 +23,7 @@ module.exports = {
   ],
   externals: {
     // Mark these modules as external - they will be provided by Jan at runtime
-    '@janhq/core': 'commonjs @janhq/core',
-    'electron': 'commonjs electron'
+    'electron': 'electron'
   },
   output: {
     filename: "index.js",

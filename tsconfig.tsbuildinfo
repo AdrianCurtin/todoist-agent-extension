@@ -1,1 +1,1 @@
-{"root":["./@types/electron.d.ts","./@types/global.d.ts","./@types/janhq-core.d.ts","./src/command-handler.ts","./src/index.ts","./src/message-listener.ts","./src/module.ts","./src/todoist-service.ts"],"version":"5.7.3"}
+{"root":["./@types/electron.d.ts","./@types/global.d.ts","./src/command-handler.ts","./src/index.ts","./src/message-listener.ts","./src/module.ts","./src/todoist-service.ts"],"version":"5.7.3"}

@@ -2,7 +2,7 @@
  * Listener for Jan messages to intercept Todoist commands
  */
 
-import { PluginService, core, events, Assistant, Thread } from '@janhq/core';
+import { events, Assistant, Thread } from '@janhq/core';
 import { CommandHandler } from './command-handler';
 
 export class MessageListener {
@@ -69,12 +69,12 @@ export class MessageListener {
     try {
       // Find the assistant for this thread
       const thread = await this.getThread(threadId);
-      if (!thread || !thread.assistantId) {
+      if (!thread || !thread.id) {
         console.error('Thread or assistant ID not found');
         return;
       }
       
-      const assistant = await this.getAssistant(thread.assistantId);
+      const assistant = await this.getAssistant(thread.id);
       if (!assistant) {
         console.error('Assistant not found');
         return;

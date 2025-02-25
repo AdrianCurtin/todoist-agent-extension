@@ -13,7 +13,6 @@ async function initConfigPath(): Promise<void> {
 
 import axios from 'axios';
 import { ipcMain } from 'electron';
-import { core } from '@janhq/core';
 
 // Settings key for Todoist API token
 const API_TOKEN_KEY = 'todoist-api-token';

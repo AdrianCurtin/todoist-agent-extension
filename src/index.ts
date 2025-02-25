@@ -2,7 +2,7 @@
  * Todoist integration for Jan AI
  */
 
-import { PluginService, RegisterExtensionPoint, core, fs, joinPath } from "@janhq/core";
+import { ModelExtension, RegisterExtensionPoint, fs, joinPath, AssistantExtension } from "@janhq/core";
 import { MessageListener } from "./message-listener";
 
 // Settings array for the plugin
@@ -80,8 +80,7 @@ function completeTask(taskId: string): Promise<any> {
 
 // Initialize plugin by registering extension functions
 export function init({ register }: { register: RegisterExtensionPoint }) {
-  register(PluginService.OnStart, PLUGIN_NAME, onStart);
-  
+
   // Register Todoist specific functions
   register("todoist:addTask", PLUGIN_NAME, addTask);
   register("todoist:getProjects", PLUGIN_NAME, getProjects);
